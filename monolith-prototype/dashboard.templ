@@ -2,33 +2,37 @@ package main
 
 templ NewCollection() {
 	@Page("Make New Collection") {
+		<button><a onclick="history.back()" href="#">Back</a></button>
 		<form method="POST">
 			<input type="text" id="name" name="name" placeholder="My Collection"/>
-			<button>Create</button>
+			<button>Make New Collection</button>
 		</form>
 	}
 }
 
-templ Dashboard(name string, userCollections []Collection, userItems []UserItem) {
-	<h1>{ name }</h1>
-	<button><a href="/new_collection">New Collection</a></button>
-	<nav>
-		for _, collection := range userCollections {
-			<li><a href={ templ.SafeURL("/dashboard/" + collection.ID) }>{ collection.Name }</a></li>
-		}
-	</nav>
-	<table>
-		<tr>
-			<th>Name</th>
-			<th>Metadata</th>
-			<th>ImageRefs</th>
-		</tr>
-		for _, item := range userItems {
+templ Dashboard(name string, collectionID string, userCollections []Collection, userItems []UserItem) {
+	@Page(name) {
+		<h1>{ name }</h1>
+		<button><a href={ templ.SafeURL("/add_item/" + collectionID) }>Add Item</a></button>
+		<button><a href="/new_collection">New Collection</a></button>
+		<nav>
+			for _, collection := range userCollections {
+				<li><a href={ templ.SafeURL("/dashboard/" + collection.ID) }>{ collection.Name }</a></li>
+			}
+		</nav>
+		<table>
 			<tr>
-				<td>{ item.Name }</td>
-				<td>{ item.Metadata }</td>
-				<td>{ item.ImageRefs }</td>
+				<th>Name</th>
+				<th>Metadata</th>
+				<th>ImageRefs</th>
 			</tr>
-		}
-	</table>
+			for _, item := range userItems {
+				<tr>
+					<td>{ item.Name }</td>
+					<td>{ item.Metadata }</td>
+					<td>{ item.ImageRefs }</td>
+				</tr>
+			}
+		</table>
+	}
 }

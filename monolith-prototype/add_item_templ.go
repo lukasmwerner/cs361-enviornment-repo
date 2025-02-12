@@ -41,7 +41,7 @@ func AddItem() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form><h1>Add Item</h1><input type=\"text\" name=\"name\" id=\"name\" placeholder=\"Name\"> <input type=\"text\" name=\"description\" id=\"description\" placeholder=\"Description\"> <input type=\"text\" name=\"category\" id=\"category\" placeholder=\"Category\"> <input type=\"text\" name=\"value\" id=\"value\" placeholder=\"Value\"> <button>Add Item</button></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button><a href=\"#\" onclick=\"history.back()\">back</a></button><form method=\"POST\"><h1>Add Item</h1><input type=\"text\" name=\"name\" id=\"name\" placeholder=\"Name\"> <textarea id=\"metadata\" name=\"metadata\" cols=\"50\" rows=\"10\" placeholder=\"Anything can go in here...\nValue: $10\nArtist: Claire Rosinkranz\nGenre: Pop\"></textarea> <button>Add Item</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

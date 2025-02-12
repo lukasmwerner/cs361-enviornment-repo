@@ -72,6 +72,7 @@ func (s *Server) ListenAndServe(port string) {
 	s.Mux.Handle("/images/", http.FileServerFS(s.imagesFS))
 	s.Mux.HandleFunc("/dashboard/{id}", s.Dashboard)
 	s.Mux.HandleFunc("/new_collection", s.NewCollection)
+	s.Mux.HandleFunc("/add_item/{id}", s.AddItem)
 
 	http.ListenAndServe(port, s.Mux)
 }
@@ -112,13 +113,7 @@ func (s *Server) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// row = s.db.QueryRow(`select name from user_collections where user_id = ? and collection_table_id = ?`, userID, dbID)
 	collectionName := ""
-	// if row.Scan(&collectionName) != nil {
-	// 	http.Error(w, "collection not found", http.StatusNotFound)
-	// 	return
-	// }
-
 	user_collections := []Collection{}
 	rows, err := s.db.Query(`select collection_table_id, name from user_collections where user_id = ?`, userID)
 	for rows.Next() {
@@ -152,7 +147,7 @@ func (s *Server) Dashboard(w http.ResponseWriter, r *http.Request) {
 		userItems = append(userItems, row)
 	}
 
-	templ.Handler(Dashboard(collectionName, user_collections, userItems)).ServeHTTP(w, r)
+	templ.Handler(Dashboard(collectionName, fmt.Sprintf("%d", dbID), user_collections, userItems)).ServeHTTP(w, r)
 
 }
 
@@ -202,4 +197,41 @@ func (s *Server) NewCollection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/dashboard/%d", max_collection_id), http.StatusSeeOther)
+}
+
+func (s *Server) AddItem(w http.ResponseWriter, r *http.Request) {
+	activeUser, username := s.GetUserFromRequest(r)
+	if !activeUser {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if r.Method == "GET" {
+		templ.Handler(AddItem()).ServeHTTP(w, r)
+		return
+	}
+
+	userID := -1
+	row := s.db.QueryRow(`select id from users where username = ?`, username)
+	if row.Scan(&userID) != nil {
+		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	}
+
+	name := r.FormValue("name")
+	meta := r.FormValue("metadata")
+
+	collectionID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || collectionID < 0 {
+		http.Error(w, "invalid collection id", http.StatusBadRequest)
+		return
+	}
+
+	_, err = s.db.Exec(fmt.Sprintf(`insert into user_%d_collection_%d (name, metadata, image_refs) values (?, ?, ?)`, userID, collectionID), name, meta, "[]")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/dashboard/%d", collectionID), http.StatusSeeOther)
 }
