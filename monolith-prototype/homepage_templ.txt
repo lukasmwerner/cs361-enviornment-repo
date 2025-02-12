@@ -1,0 +1,1 @@
+<h1>Small Data</h1><p>Empowers collectors to track and manage their prized possessions across various categories.</p><button><a href=\"/login\">Login</a></button> <button><a href=\"/signup\">Signup</a></button> <button><a href=\"/dashboard/0\">Dashboard</a></button>

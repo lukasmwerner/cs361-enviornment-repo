@@ -1,0 +1,17 @@
+package main
+
+templ HTMX() {
+	<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+}
+
+templ Page(title string) {
+	<html>
+		<head>
+			@HTMX()
+			<title>Small Data - { title }</title>
+		</head>
+		<body>
+			{ children... }
+		</body>
+	</html>
+}

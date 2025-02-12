@@ -1,0 +1,5 @@
+<script src=\"https://unpkg.com/htmx.org@2.0.4\"></script>
+<html><head>
+<title>Small Data - 
+</title></head><body>
+</body></html>

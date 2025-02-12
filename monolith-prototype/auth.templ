@@ -1,0 +1,15 @@
+package main
+
+templ Auth(title string) {
+	@Page(title) {
+		<form method="POST">
+			<h1>{ title }</h1>
+			if title == "Signup" {
+				<input type="text" name="collection" id="collection" placeholder="My Collection"/>
+			}
+			<input type="text" name="email" id="email" placeholder="Email"/>
+			<input type="password" name="password" id="password" placeholder="Password"/>
+			<button>{ title }</button>
+		</form>
+	}
+}
