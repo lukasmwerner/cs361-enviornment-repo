@@ -2,10 +2,117 @@ package main
 
 templ AddItem() {
 	@Page("Add Item") {
+		<style>
+		  form {
+		    max-width: 600px;
+		    margin: 20px auto;
+		    padding: 20px;
+		    border: 1px solid #ddd;
+		    border-radius: 5px;
+		    background-color: #f9f9f9;
+		  }
+
+		  h1 {
+		    margin-top: 0;
+		    color: #333;
+		    border-bottom: 1px solid #eee;
+		    padding-bottom: 10px;
+		  }
+
+		  input[type="text"] {
+		    width: 100%;
+		    padding: 8px;
+		    margin-bottom: 15px;
+		    border: 1px solid #ccc;
+		    border-radius: 4px;
+		    font-size: 16px;
+		  }
+
+		  textarea {
+		    width: 100%;
+		    padding: 8px;
+		    margin-bottom: 15px;
+		    border: 1px solid #ccc;
+		    border-radius: 4px;
+		    font-size: 14px;
+		  }
+
+		  button {
+		    padding: 8px 16px;
+		    background-color: #4CAF50;
+		    color: white;
+		    border: none;
+		    border-radius: 4px;
+		    cursor: pointer;
+		    font-size: 16px;
+		  }
+
+		  button:hover {
+		    background-color: #45a049;
+		  }
+
+		  .back-button {
+		    margin-bottom: 15px;
+		    display: inline-block;
+		  }
+
+		  .format-tips {
+		    background-color: #f0f8ff;
+		    padding: 10px;
+		    border-left: 3px solid #007bff;
+		    margin-bottom: 15px;
+		    font-size: 14px;
+		  }
+
+		  .examples-link {
+		    color: #007bff;
+		    text-decoration: underline;
+		    cursor: pointer;
+		  }
+          .format-example {
+              white-space: pre-wrap;
+              word-break: break-word;
+              font-family: monospace;
+              overflow-x: auto;
+              padding: 5px;
+              background-color: #f8f8f8;
+              border-radius: 3px;
+          }
+		</style>
 		<button><a href="#" onclick="history.back()">back</a></button>
-		<form method="POST">
+		<form method="POST" onsubmit="return confirm('Adding an item requires manual entry of all metadata. Continue?')">
 			<h1>Add Item</h1>
 			<input type="text" name="name" id="name" placeholder="Name"/>
+			<div class="format-tips">
+				<b>Formatting Tips:</b> Try different formats in your metadata to organize information better.
+				<span class="examples-link" onclick="toggleExamples()">Show examples</span>
+				<div id="format-examples" style="display: none; margin-top: 10px;">
+					<strong>Example 1:</strong>
+					<div class="format-example">
+						Title: Dark Side of the Moon
+						<br/>
+						Artist: Pink Floyd
+						<br/>
+						Year: 1973
+						<br/>
+						Condition: Excellent
+						<br/>
+						Notes: Original pressing
+						<br/>
+					</div>
+					<strong>Example 2:</strong>
+					<div class="format-example">
+						Purchased:  oregon coffee and tea
+						<br/>
+						Cost: $2.50 per oz
+						<br/>
+						Flavor profile: bold and rich
+						<br/>
+						Temperature: 78°C
+						<br/>
+					</div>
+				</div>
+			</div>
 			<textarea
 				id="metadata"
 				name="metadata"
@@ -17,6 +124,23 @@ Artist: Claire Rosinkranz
 Genre: Pop"
 			></textarea>
 			<button>Add Item</button>
+			<div style="margin-bottom: 15px; color: #555;">
+				<span style="color: #aaa;">Step 1: Browse Collection</span> &rarr;
+				<strong>Step 2: Add/Edit Items</strong>
+			</div>
 		</form>
+		<script>
+        function toggleExamples() {
+          const examples = document.getElementById('format-examples');
+          const link = document.querySelector('.examples-link');
+          if (examples.style.display === 'none') {
+            examples.style.display = 'block';
+            link.textContent = 'Hide examples';
+          } else {
+            examples.style.display = 'none';
+            link.textContent = 'Show examples';
+          }
+        }
+        </script>
 	}
 }

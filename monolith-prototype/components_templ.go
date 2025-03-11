@@ -79,7 +79,7 @@ func Page(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</title></head><body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</title><style>\n\t\t\t\t.grid {\n\t\t\t\t\tdisplay: grid;\n\t\t\t\t\tgrid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n\t\t\t\t\tgap: 1rem;\n\t\t\t\t}\n\t\t\t\t.item {\n\t\t\t\t\tborder: 1px solid #ccc;\n\t\t\t\t\tpadding: 1rem;\n\t\t\t\t\tborder-radius: 4px;\n\t\t\t\t}\n\t\t\t</style></head><body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

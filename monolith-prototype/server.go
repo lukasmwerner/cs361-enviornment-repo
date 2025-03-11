@@ -94,7 +94,6 @@ type Collection struct {
 }
 
 func (s *Server) Dashboard(w http.ResponseWriter, r *http.Request) {
-
 	activeUser, username := s.GetUserFromRequest(r)
 	if !activeUser {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -106,6 +105,8 @@ func (s *Server) Dashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
+
+	showMetadata := r.URL.Query().Get("show") == "true"
 
 	dbID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || dbID < 0 {
@@ -147,7 +148,13 @@ func (s *Server) Dashboard(w http.ResponseWriter, r *http.Request) {
 		userItems = append(userItems, row)
 	}
 
-	templ.Handler(Dashboard(collectionName, fmt.Sprintf("%d", dbID), user_collections, userItems)).ServeHTTP(w, r)
+	viewMode := r.URL.Query().Get("view")
+	if viewMode == "pokedex" {
+		templ.Handler(Pokedex(collectionName, fmt.Sprintf("%d", dbID), user_collections, userItems, showMetadata)).ServeHTTP(w, r)
+		return
+	}
+
+	templ.Handler(Dashboard(collectionName, fmt.Sprintf("%d", dbID), user_collections, userItems, showMetadata)).ServeHTTP(w, r)
 
 }
 
