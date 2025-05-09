@@ -1,0 +1,16 @@
+version: 3
+name: cs361-project
+
+services:
+  main:
+    image: registry.hafen.run/cs361/main-program
+    build: ./monolith-prototype/
+  image-service:
+    image: registry.hafen.run/cs361/image-service
+    build: ./image-service/
+  auth-service:
+    image: registry.hafen.run/cs361/auth-service
+    build: ./auth-service/
+  collections-service:
+    image: registry.hafen.run/cs361/collections-service
+    build: ./collections-service/

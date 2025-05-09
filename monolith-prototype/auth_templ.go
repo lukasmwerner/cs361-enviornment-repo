@@ -41,14 +41,14 @@ func Auth(title string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form method=\"POST\"><h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col items-center justify-center gap-2 h-full\"><form method=\"POST\" class=\"border-3 rounded-lg p-6 flex flex-col items-center gap-4\"><h1 class=\"text-5xl\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `auth.templ`, Line: 6, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `auth.templ`, Line: 7, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -59,25 +59,41 @@ func Auth(title string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if title == "Signup" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<input type=\"text\" name=\"collection\" id=\"collection\" placeholder=\"My Collection\"> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<input type=\"text\" name=\"collection\" id=\"collection\" placeholder=\"My Collection\" class=\"border-b-2 text-2xl\"> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<input type=\"text\" name=\"email\" id=\"email\" placeholder=\"Email\"> <input type=\"password\" name=\"password\" id=\"password\" placeholder=\"Password\"> <button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<input type=\"text\" name=\"email\" id=\"email\" placeholder=\"Email\" class=\"border-b-2 text-2xl\"> <input type=\"password\" name=\"password\" id=\"password\" placeholder=\"Password\" class=\"border-b-2 text-2xl\"> <button class=\"text-2xl bg-blue-500 p-2 rounded-lg text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `auth.templ`, Line: 12, Col: 18}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `auth.templ`, Line: 13, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</button></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if title == "Login" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"flex justify-between w-full gap-2\"><p>Don't Have an Account?</p><button class=\"hover:italic hover:text-blue-300 hover:border-blue-300 border-b-2\"><a href=\"/signup\">Register</a></button></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			if title == "Signup" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex justify-between w-full gap-2\"><p>Have an Account?</p><button class=\"hover:italic hover:text-blue-300 hover:border-blue-300 border-b-2\"><a href=\"/login\">Log In</a></button></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

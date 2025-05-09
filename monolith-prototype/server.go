@@ -2,9 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"strconv"
 
@@ -47,13 +51,15 @@ func NewServer(usersDB string) *Server {
 
 	mux := http.NewServeMux()
 
-	return &Server{
+	s := &Server{
 		Mux: mux,
 		db:  db,
 		kv:  kv,
 
 		imagesFS: os.DirFS("images"),
 	}
+	s.registerRoutes()
+	return s
 }
 
 type Server struct {
@@ -64,16 +70,23 @@ type Server struct {
 	imagesFS fs.FS
 }
 
-func (s *Server) ListenAndServe(port string) {
+func (s *Server) registerRoutes() {
+	image_service, _ := url.Parse("http://localhost:3000")
+	s.Mux.Handle("/images/", httputil.NewSingleHostReverseProxy(image_service))
 
-	s.Mux.Handle("/", templ.Handler(Homepage()))
-	s.Mux.HandleFunc("/login", s.Login)
-	s.Mux.HandleFunc("/signup", s.Signup)
-	s.Mux.Handle("/images/", http.FileServerFS(s.imagesFS))
 	s.Mux.HandleFunc("/dashboard/{id}", s.Dashboard)
 	s.Mux.HandleFunc("/new_collection", s.NewCollection)
+	s.Mux.Handle("/search", templ.Handler(SearchBox()))
 	s.Mux.HandleFunc("/add_item/{id}", s.AddItem)
 
+	s.Mux.HandleFunc("/login", s.Login)
+	s.Mux.HandleFunc("/logout", s.Logout)
+	s.Mux.HandleFunc("/signup", s.Signup)
+
+	s.Mux.HandleFunc("/", s.Homepage)
+}
+
+func (s *Server) ListenAndServe(port string) {
 	http.ListenAndServe(port, s.Mux)
 }
 
@@ -83,14 +96,23 @@ func (s *Server) Close() {
 }
 
 type UserItem struct {
-	Name      string `json:"name"`
-	Metadata  string `json:"metadata"`
-	ImageRefs string `json:"image_refs"`
+	Name      string   `json:"name"`
+	Metadata  string   `json:"metadata"`
+	ImageRefs []string `json:"image_refs"`
 }
 
 type Collection struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+func (s *Server) Homepage(w http.ResponseWriter, r *http.Request) {
+	activeUser, _ := s.GetUserFromRequest(r)
+	if !activeUser {
+		templ.Handler(Homepage()).ServeHTTP(w, r)
+		return
+	}
+	http.Redirect(w, r, "/dashboard/0", http.StatusSeeOther)
 }
 
 func (s *Server) Dashboard(w http.ResponseWriter, r *http.Request) {
@@ -132,20 +154,55 @@ func (s *Server) Dashboard(w http.ResponseWriter, r *http.Request) {
 		user_collections = append(user_collections, row)
 	}
 
-	rows, err = s.db.Query(fmt.Sprintf(`select name, metadata, image_refs from user_%d_collection_%d`, userID, dbID))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	userItems := make([]UserItem, 0)
-	for rows.Next() {
-		row := UserItem{}
-		err := rows.Scan(&row.Name, &row.Metadata, &row.ImageRefs)
+	userItems := []UserItem{}
+
+	hasQuery := r.URL.Query().Has("query")
+	if hasQuery {
+		u, _ := url.Parse(fmt.Sprintf("http://localhost:8083/search/%d/%d", userID, dbID))
+		q := u.Query()
+		q.Set("query", r.URL.Query().Get("query"))
+		u.RawQuery = q.Encode()
+		search_resp, err := http.Get(u.String())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		userItems = append(userItems, row)
+		defer search_resp.Body.Close()
+		b, _ := io.ReadAll(search_resp.Body)
+		userResults := []struct {
+			Name      string `json:"name"`
+			Metadata  string `json:"metadata"`
+			ImageRefs string `json:"image_refs"`
+		}{}
+		err = json.Unmarshal(b, &userResults)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		for _, result := range userResults {
+			item := UserItem{Name: result.Name, Metadata: result.Metadata}
+			json.Unmarshal([]byte(result.ImageRefs), &item.ImageRefs)
+			userItems = append(userItems, item)
+		}
+
+	} else {
+		rows, err = s.db.Query(fmt.Sprintf(`select name, metadata, image_refs from user_%d_collection_%d`, userID, dbID))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		for rows.Next() {
+			row := UserItem{}
+			refs := ""
+			err := rows.Scan(&row.Name, &row.Metadata, &refs)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			_ = json.Unmarshal([]byte(refs), &row.ImageRefs)
+			userItems = append(userItems, row)
+		}
 	}
 
 	viewMode := r.URL.Query().Get("view")
@@ -214,7 +271,7 @@ func (s *Server) AddItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		templ.Handler(AddItem()).ServeHTTP(w, r)
+		templ.Handler(AddItem(r.URL.Path)).ServeHTTP(w, r)
 		return
 	}
 
@@ -225,6 +282,29 @@ func (s *Server) AddItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	base64ImagesJSON := r.FormValue("photoData")
+	var base64Images []ImageUploadImage
+	err := json.Unmarshal([]byte(base64ImagesJSON), &base64Images)
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return
+	}
+
+	// Upload the images to microservice a
+	results, err := uploadBase64Images("http://localhost:3000", base64Images)
+	if err != nil {
+		fmt.Println("Error uploading images:", err)
+		return
+	}
+
+	refs := []string{}
+	for _, result := range results {
+		refs = append(refs, result.URL)
+		go ai_tagImage(result.URL)
+	}
+
+	image_refs, _ := json.Marshal(refs)
+
 	name := r.FormValue("name")
 	meta := r.FormValue("metadata")
 
@@ -234,7 +314,7 @@ func (s *Server) AddItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.db.Exec(fmt.Sprintf(`insert into user_%d_collection_%d (name, metadata, image_refs) values (?, ?, ?)`, userID, collectionID), name, meta, "[]")
+	_, err = s.db.Exec(fmt.Sprintf(`insert into user_%d_collection_%d (name, metadata, image_refs) values (?, ?, ?)`, userID, collectionID), name, meta, image_refs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

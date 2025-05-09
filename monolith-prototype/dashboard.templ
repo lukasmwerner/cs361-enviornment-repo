@@ -1,97 +1,92 @@
 package main
 
+import "strings"
+
 templ NewCollection() {
-	@Page("Make New Collection") {
-		<button><a onclick="history.back()" href="#">Back</a></button>
-		<form method="POST">
-			<input type="text" id="name" name="name" placeholder="My Collection"/>
-			<button>Make New Collection</button>
-		</form>
-	}
+	<div class="absolute top-0 bottom-0 left-0 right-0 flex justify-center" style="background-color: rgba(0,0,0,0.5);" id="modal">
+		<div class="m-10 p-10 w-3xl h-min bg-gray-100 flex flex-col rounded-md overflow-y-scroll">
+			<form class="w-3xl flex flex-col w-full" method="POST" action="/new_collection">
+				<h1 class="text-3xl">Create a new Collection</h1>
+				<input class="bg-white rounded-md p-2 m-2" type="text" id="name" name="name" placeholder="My Collection"/>
+				<button>Make New Collection</button>
+			</form>
+		</div>
+	</div>
 }
 
 templ Dashboard(name string, collectionID string, userCollections []Collection, userItems []UserItem, showMetadata bool) {
 	@Page(name) {
-		<nav>
-			for _, collection := range userCollections {
-				<li><a href={ templ.SafeURL("/dashboard/" + collection.ID) }>{ collection.Name }</a></li>
-			}
-		</nav>
-		<h1>{ name }</h1>
-		<div style="margin-bottom: 15px; color: #555;">
-			<strong>Step 1:</strong> Browse Collection &rarr;
-			<span style="color: #aaa;">Step 2: Add/Edit Items</span>
-		</div>
-		<button><a href={ templ.SafeURL("/add_item/" + collectionID) }>Add Item</a></button>
-		<button><a href="/new_collection">New Collection</a></button>
-		<hr/>
-		<div>
-			<strong>Details:</strong>
-			if showMetadata {
-				<a href={ templ.SafeURL("/dashboard/" + collectionID) }>Hide Details</a>
-			} else {
-				<a href={ templ.SafeURL("/dashboard/" + collectionID + "?show=true") }>Show Details</a>
-			}
-		</div>
-		<div>
-			<strong>View:</strong>
-			<a href="?view=list">List</a> |
-			<a href="?view=pokedex">Pokedex</a>
-		</div>
-		<table>
-			<tr>
-				<th>Name</th>
-				if showMetadata {
-					<th>Metadata</th>
-				}
-				<th>ImageRefs</th>
-			</tr>
-			for _, item := range userItems {
-				<tr>
-					<td>{ item.Name }</td>
-					if showMetadata {
-						<td>{ item.Metadata }</td>
+		<nav class="flex justify-between p-2 items-center" style="view-transition-name: nav;">
+			<div class="flex-1 flex gap-2">
+				<button class="border-2 rounded-lg p-2"><a href="?view=pokedex">🖼️</a></button>
+				<button class="border-2 rounded-lg p-2" hx-get="/search" hx-trigger="click" hx-target="#modal" hx-swap="outerHTML">🔍</button>
+			</div>
+			<div class="flex justify-center align-center list-none gap-4 flex-1">
+				for _, collection := range userCollections {
+					if name == collection.Name {
+						<li><a class="font-bold" href={ templ.SafeURL("/dashboard/" + collection.ID) }>{ collection.Name }</a></li>
+					} else {
+						<li><a class="" href={ templ.SafeURL("/dashboard/" + collection.ID) }>{ collection.Name }</a></li>
 					}
-					<td>{ item.ImageRefs }</td>
+				}
+			</div>
+			<div class="flex-1 flex flex-row-reverse gap-4">
+				<button><a href="/logout">Logout</a></button>
+				<button hx-get={ "/add_item/" + collectionID } hx-trigger="click" hx-target="#modal" hx-swap="outerHTML">Add Item</button>
+				<button hx-get="/new_collection" hx-trigger="click" hx-target="#modal" hx-swap="outerHTML">New Collection</button>
+			</div>
+		</nav>
+		<hr/>
+		<div class="w-full p-8">
+			<table class="w-full">
+				<tr class="border-b-4 border-b-gray-300 w-full text-xl text-left">
+					<th>Name</th>
+					<th>Metadata</th>
+					<th>ImageRefs</th>
 				</tr>
-			}
-		</table>
+				for _, item := range userItems {
+					<tr>
+						<td>{ item.Name }</td>
+						<td>{ item.Metadata }</td>
+						<td>{ strings.Join(item.ImageRefs, ", ") }</td>
+					</tr>
+				}
+			</table>
+		</div>
+		<div class="hidden absolute top-0 bottom-0 left-0 right-0" id="modal"></div>
 	}
 }
 
 templ Pokedex(name string, collectionID string, userCollections []Collection, userItems []UserItem, showMetadata bool) {
 	@Page(name) {
-		<nav>
-			for _, collection := range userCollections {
-				<li><a href={ templ.SafeURL("/dashboard/" + collection.ID) }>{ collection.Name }</a></li>
-			}
+		<nav class="flex justify-between p-2 items-center" style="view-transition-name: nav;">
+			<div class="flex-1 flex gap-2">
+				<button class="border-2 rounded-lg p-2"><a href="?view=list">📊</a></button>
+				<button class="border-2 rounded-lg p-2" hx-get="/search" hx-trigger="click" hx-target="#modal" hx-swap="outerHTML">🔍</button>
+			</div>
+			<div class="flex justify-center align-center list-none gap-4 flex-1">
+				for _, collection := range userCollections {
+					if name == collection.Name {
+						<li><a class="font-bold" href={ templ.SafeURL("/dashboard/" + collection.ID) }>{ collection.Name }</a></li>
+					} else {
+						<li><a class="" href={ templ.SafeURL("/dashboard/" + collection.ID) }>{ collection.Name }</a></li>
+					}
+				}
+			</div>
+			<div class="flex-1 flex flex-row-reverse gap-4">
+				<button><a href="/logout">Logout</a></button>
+				<button hx-get={ "/add_item/" + collectionID } hx-trigger="click" hx-target="#modal" hx-swap="outerHTML">Add Item</button>
+				<button hx-get="/new_collection" hx-trigger="click" hx-target="#modal" hx-swap="outerHTML">New Collection</button>
+			</div>
 		</nav>
-		<h1>{ name }</h1>
-		<div style="margin-bottom: 15px; color: #555;">
-			<strong>Step 1:</strong> Browse Collection &rarr;
-			<span style="color: #aaa;">Step 2: Add/Edit Items</span>
-		</div>
-		<button><a href={ templ.SafeURL("/add_item/" + collectionID) }>Add Item</a></button>
-		<button><a href="/new_collection">New Collection</a></button>
 		<hr/>
-		<div>
-			<strong>Details:</strong>
-			if showMetadata {
-				<a href={ templ.SafeURL("/dashboard/" + collectionID) }>Hide Details</a>
-			} else {
-				<a href={ templ.SafeURL("/dashboard/" + collectionID + "?show=true") }>Show Details</a>
-			}
-		</div>
-		<div>
-			<strong>View:</strong>
-			<a href="?view=list">List</a> |
-			<a href="?view=pokedex">Pokedex</a>
-		</div>
-		<div class="grid">
+		<div class="grid grid-cols-4 gap-4 p-20">
 			for _, item := range userItems {
 				<div class="item">
 					<!-- TODO add image for pokedex effect -->
-					<p>image goes here</p>
+					if len(item.ImageRefs) > 0 {
+						<img src={ item.ImageRefs[0] } alt={ item.Name }/>
+					}
 					<h2>{ item.Name }</h2>
 					if showMetadata {
 						<p>{ item.Metadata }</p>
@@ -99,5 +94,6 @@ templ Pokedex(name string, collectionID string, userCollections []Collection, us
 				</div>
 			}
 		</div>
+		<div class="hidden absolute top-0 bottom-0 left-0 right-0" id="modal"></div>
 	}
 }

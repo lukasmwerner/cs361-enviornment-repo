@@ -41,7 +41,7 @@ func Homepage() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Small Data</h1><p>Empowers collectors to track and manage their prized possessions across various categories.</p><button><a href=\"/login\">Login</a></button> <button><a href=\"/signup\">Signup</a></button> <button><a href=\"/dashboard/0\">Dashboard</a></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col items-center justify-center gap-2 h-full\"><h1 class=\"text-5xl\">Small Data</h1><p class=\"text-xl w-96\">Empowers collectors to track and manage their prized possessions across various categories.</p><div class=\"flex gap-2\"><button class=\"text-white bg-blue-500 p-2 rounded-lg\"><a href=\"/login\">Login</a></button> <button class=\"text-white bg-red-400 p-2 rounded-lg\"><a href=\"/signup\">Signup</a></button></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

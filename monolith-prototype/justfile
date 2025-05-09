@@ -1,2 +1,14 @@
-dev:
+css:
+	npx --yes tailwindcss -i ./tailwind.css -o ./static/styles.css --minify --watch
+
+templ:
 	templ generate --watch --proxy="http://localhost:8080" --cmd="go run ."
+
+run:
+	go run .
+
+dev:
+	#!/usr/bin/env -S parallel --shebang --ungroup --jobs {{ num_cpus() }}
+	just templ
+	just css
+

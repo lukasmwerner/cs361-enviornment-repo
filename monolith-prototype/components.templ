@@ -9,18 +9,7 @@ templ Page(title string) {
 		<head>
 			@HTMX()
 			<title>Small Data - { title }</title>
-			<style>
-				.grid {
-					display: grid;
-					grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-					gap: 1rem;
-				}
-				.item {
-					border: 1px solid #ccc;
-					padding: 1rem;
-					border-radius: 4px;
-				}
-			</style>
+			<link href="/static/styles.css" rel="stylesheet"/>
 		</head>
 		<body>
 			{ children... }

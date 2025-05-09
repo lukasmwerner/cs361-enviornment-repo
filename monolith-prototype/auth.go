@@ -3,12 +3,14 @@ package main
 import (
 	"crypto/sha512"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/a-h/templ"
-	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,28 +32,80 @@ func (s *Server) GetUserFromRequest(r *http.Request) (bool, string) {
 }
 
 func (s *Server) activeUser(token string) (bool, string) {
-	var found bool
-	var username string
-	s.kv.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("userSessions"))
-		u := b.Get([]byte(token))
-		if u == nil {
-			found = false
-		} else {
-			username = string(u)
-			found = true
-		}
-		return nil
-	})
-	return found, username
+	// var found bool
+	// var username string
+	// s.kv.View(func(tx *bolt.Tx) error {
+	// 	b := tx.Bucket([]byte("userSessions"))
+	// 	u := b.Get([]byte(token))
+	// 	if u == nil {
+	// 		found = false
+	// 	} else {
+	// 		username = string(u)
+	// 		found = true
+	// 	}
+	// 	return nil
+	// })
+
+	u, _ := url.Parse("http://localhost:8082/is_active")
+	q := u.Query()
+	q.Set("token", token)
+	u.RawQuery = q.Encode()
+	resp, err := http.Get(u.String())
+	if err != nil {
+		return false, ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return false, ""
+	}
+	var res = struct {
+		Found    bool
+		Username string
+	}{
+		Found:    false,
+		Username: "",
+	}
+	b, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(b, &res)
+	fmt.Println(string(b))
+	fmt.Println(res)
+	return res.Found, res.Username
 }
 
 func (s *Server) SetToken(token string, user string) {
-	s.kv.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("userSessions"))
-		err := b.Put([]byte(token), []byte(user))
-		return err
-	})
+	// s.kv.Update(func(tx *bolt.Tx) error {
+	// 	b := tx.Bucket([]byte("userSessions"))
+	// 	err := b.Put([]byte(token), []byte(user))
+	// 	return err
+	// })
+
+	u, _ := url.Parse("http://localhost:8082/set_active")
+	q := u.Query()
+	q.Set("token", token)
+	q.Set("user", user)
+	u.RawQuery = q.Encode()
+	http.Get(u.String())
+}
+
+func (s *Server) Logout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("userTok")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// s.kv.Update(func(tx *bolt.Tx) error {
+	// 	b := tx.Bucket([]byte("userSessions"))
+	// 	err := b.Delete([]byte(cookie.Value))
+	// 	return err
+	// })
+
+	u, _ := url.Parse("http://localhost:8082/logout")
+	q := u.Query()
+	q.Set("token", cookie.Value)
+	u.RawQuery = q.Encode()
+	http.Get(u.String())
+
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
 func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
